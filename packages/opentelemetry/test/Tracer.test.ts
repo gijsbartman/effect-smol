@@ -52,7 +52,7 @@ describe("Tracer", () => {
         assert.instanceOf(child, Tracer.OtelSpan)
         assert.strictEqual(child.name, "child")
         assert.isDefined(child.parent)
-        assert.strictEqual((child.parent.valueOrUndefined as Tracer.OtelSpan).name, "parent")
+        assert.strictEqual((child.parent.valueOrUndefined! as Tracer.OtelSpan).name, "parent")
       }).pipe(
         Effect.provide(TracingLive)
       ))
