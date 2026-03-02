@@ -367,7 +367,7 @@ export class OtelSpan implements Tracer.Span {
     this.kind = options.kind
     const active = contextApi.active()
     this.parent = options.root !== true
-      ? Option.flatMapNullishOr(options.parent, (_) => getOtelParent(traceApi, active, options.annotations))
+      ? Option.orElse(options.parent, () => getOtelParent(traceApi, active, options.annotations))
       : options.parent
     this.span = tracer.startSpan(
       options.name,
@@ -463,17 +463,15 @@ const getOtelParent = (
   tracer: Otel.TraceAPI,
   context: Otel.Context,
   annotations: ServiceMap.ServiceMap<never>
-): Tracer.AnySpan | undefined => {
-  const active = tracer.getSpan(context)
-  const otelParent = active ? active.spanContext() : undefined
-  return otelParent
-    ? Tracer.externalSpan({
-      spanId: otelParent.spanId,
-      traceId: otelParent.traceId,
-      sampled: (otelParent.traceFlags & 1) === 1,
-      annotations
-    })
-    : undefined
+): Option.Option<Tracer.AnySpan> => {
+  const otelParent = tracer.getSpan(context)?.spanContext()
+  if (!otelParent) return Option.none()
+  return Option.some(Tracer.externalSpan({
+    spanId: otelParent.spanId,
+    traceId: otelParent.traceId,
+    sampled: (otelParent.traceFlags & 1) === 1,
+    annotations
+  }))
 }
 
 const makeSpanContext = (

@@ -22,9 +22,6 @@ const CommonProto = {
 const SomeProto = Object.assign(Object.create(CommonProto), {
   _tag: "Some",
   _op: "Some",
-  get valueOrUndefined() {
-    return (this as any).value
-  },
   [Equal.symbol]<A>(this: Option.Some<A>, that: unknown): boolean {
     return (
       isOption(that) && isSome(that) && Equal.equals(this.value, that.value)
@@ -45,6 +42,12 @@ const SomeProto = Object.assign(Object.create(CommonProto), {
   },
   asEffect(this: Option.Some<unknown>) {
     return exitSucceed(this.value)
+  }
+})
+
+Object.defineProperty(SomeProto, "valueOrUndefined", {
+  get() {
+    return this.value
   }
 })
 
