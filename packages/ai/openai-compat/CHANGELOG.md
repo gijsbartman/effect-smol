@@ -1,5 +1,14 @@
 # @effect/ai-openai-compat
 
+## 4.0.0-beta.28
+
+### Patch Changes
+
+- [#1634](https://github.com/Effect-TS/effect-smol/pull/1634) [`621d3a1`](https://github.com/Effect-TS/effect-smol/commit/621d3a1248ef50e83c35d71333c69bf01bc33a11) Thanks @tim-smart! - Allow custom request properties in openai-compat model config and chat request types, and forward model-level custom properties to chat-completions payloads.
+
+- Updated dependencies [[`407c3b4`](https://github.com/Effect-TS/effect-smol/commit/407c3b43a5d1414558e0e33b6f1fc0e6a6d489cc), [`42bc7ce`](https://github.com/Effect-TS/effect-smol/commit/42bc7ce5480f6f2953c39f8cb5c850d61df6f5a2), [`326cd48`](https://github.com/Effect-TS/effect-smol/commit/326cd4828bce573fe985f35152155464bf4c5a70)]:
+  - effect@4.0.0-beta.28
+
 ## 4.0.0-beta.27
 
 ### Patch Changes
