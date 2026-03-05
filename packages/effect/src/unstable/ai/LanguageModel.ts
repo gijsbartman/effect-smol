@@ -1166,12 +1166,33 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
           })
         })
       }
+      if (Predicate.isNotUndefined(params.tracker)) {
+        const prepared = yield* params.tracker.prepare(providerOptions.prompt)
+        if (Option.isSome(prepared)) {
+          providerOptions.previousResponseId = prepared.value.previousResponseId
+          providerOptions.incrementalPrompt = prepared.value.prompt
+        }
+      }
       const schema = Schema.NonEmptyArray(Response.StreamPart(Toolkit.empty))
       const decodeParts = Schema.decodeEffect(schema)
       return params
         .streamText(providerOptions)
         .pipe(
-          Stream.mapArrayEffect((parts) => decodeParts(parts))
+          Stream.mapArrayEffect((parts) =>
+            decodeParts(parts).pipe(
+              Effect.tap((decodedParts) =>
+                Effect.sync(() => {
+                  if (Predicate.isNotUndefined(params.tracker)) {
+                    for (const part of decodedParts) {
+                      if (part.type === "response-metadata" && Predicate.isNotUndefined(part.id)) {
+                        params.tracker.markParts(providerOptions.prompt.content, part.id)
+                      }
+                    }
+                  }
+                })
+              )
+            )
+          )
         ) as Stream.Stream<
           Response.StreamPart<Tools>,
           AiError.AiError | Schema.SchemaError,
@@ -1198,12 +1219,33 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
           })
         })
       }
+      if (Predicate.isNotUndefined(params.tracker)) {
+        const prepared = yield* params.tracker.prepare(providerOptions.prompt)
+        if (Option.isSome(prepared)) {
+          providerOptions.previousResponseId = prepared.value.previousResponseId
+          providerOptions.incrementalPrompt = prepared.value.prompt
+        }
+      }
       const schema = Schema.NonEmptyArray(Response.StreamPart(Toolkit.empty))
       const decodeParts = Schema.decodeEffect(schema)
       return params
         .streamText(providerOptions)
         .pipe(
-          Stream.mapArrayEffect((parts) => decodeParts(parts))
+          Stream.mapArrayEffect((parts) =>
+            decodeParts(parts).pipe(
+              Effect.tap((decodedParts) =>
+                Effect.sync(() => {
+                  if (Predicate.isNotUndefined(params.tracker)) {
+                    for (const part of decodedParts) {
+                      if (part.type === "response-metadata" && Predicate.isNotUndefined(part.id)) {
+                        params.tracker.markParts(providerOptions.prompt.content, part.id)
+                      }
+                    }
+                  }
+                })
+              )
+            )
+          )
         ) as Stream.Stream<
           Response.StreamPart<Tools>,
           AiError.AiError | Schema.SchemaError,
@@ -1282,6 +1324,14 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
     providerOptions.tools = tools
     providerOptions.toolChoice = toolChoice
 
+    if (Predicate.isNotUndefined(params.tracker)) {
+      const prepared = yield* params.tracker.prepare(providerOptions.prompt)
+      if (Option.isSome(prepared)) {
+        providerOptions.previousResponseId = prepared.value.previousResponseId
+        providerOptions.incrementalPrompt = prepared.value.prompt
+      }
+    }
+
     // If tool call resolution is disabled, return the response without
     // resolving the tool calls that were generated
     if (options.disableToolCallResolution === true) {
@@ -1290,7 +1340,21 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
       return params
         .streamText(providerOptions)
         .pipe(
-          Stream.mapArrayEffect((parts) => decodeParts(parts))
+          Stream.mapArrayEffect((parts) =>
+            decodeParts(parts).pipe(
+              Effect.tap((decodedParts) =>
+                Effect.sync(() => {
+                  if (Predicate.isNotUndefined(params.tracker)) {
+                    for (const part of decodedParts) {
+                      if (part.type === "response-metadata" && Predicate.isNotUndefined(part.id)) {
+                        params.tracker.markParts(providerOptions.prompt.content, part.id)
+                      }
+                    }
+                  }
+                })
+              )
+            )
+          )
         ) as Stream.Stream<
           Response.StreamPart<Tools>,
           AiError.AiError | Schema.SchemaError,
@@ -1362,6 +1426,13 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
       Stream.runForEachArray(
         Effect.fnUntraced(function*(chunk) {
           const parts = yield* decodeParts(chunk)
+          if (Predicate.isNotUndefined(params.tracker)) {
+            for (const part of parts) {
+              if (part.type === "response-metadata" && Predicate.isNotUndefined(part.id)) {
+                params.tracker.markParts(providerOptions.prompt.content, part.id)
+              }
+            }
+          }
           // Add decoded response parts to the output queue
           yield* Queue.offerAll(queue, parts)
           // Fork tool call handlers - use the raw chunk for encoded params
