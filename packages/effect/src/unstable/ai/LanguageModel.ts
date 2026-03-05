@@ -69,6 +69,7 @@ import { defaultIdGenerator, IdGenerator } from "./IdGenerator.ts"
 import * as InternalCodecTransformer from "./internal/codec-transformer.ts"
 import * as Prompt from "./Prompt.ts"
 import * as Response from "./Response.ts"
+import type * as ResponseIdTracker from "./ResponseIdTracker.ts"
 import type { SpanTransformer } from "./Telemetry.ts"
 import { CurrentSpanTransformer } from "./Telemetry.ts"
 import type * as Tool from "./Tool.ts"
@@ -661,6 +662,11 @@ export interface ConstructorParams {
   readonly streamText: (
     options: ProviderOptions
   ) => Stream.Stream<Response.StreamPartEncoded, AiError.AiError, IdGenerator>
+
+  /**
+   * Optional tracker used to prepare incremental prompts.
+   */
+  readonly tracker?: ResponseIdTracker.Service | undefined
 }
 
 /**
