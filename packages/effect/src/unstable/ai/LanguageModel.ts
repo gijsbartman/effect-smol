@@ -622,6 +622,16 @@ export interface ProviderOptions {
    * The span to use to trace interactions with the large language model.
    */
   readonly span: Span
+
+  /**
+   * The previous response identifier for incremental provider calls.
+   */
+  readonly previousResponseId: string | undefined
+
+  /**
+   * The prompt reduced to messages not yet seen by the provider.
+   */
+  readonly incrementalPrompt: Prompt.Prompt | undefined
 }
 
 /**
@@ -703,7 +713,9 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
             tools: [],
             toolChoice: "none",
             responseFormat: { type: "text" },
-            span
+            span,
+            previousResponseId: undefined,
+            incrementalPrompt: undefined
           }
           const content = yield* generateContent(options, providerOptions)
 
@@ -767,7 +779,9 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
               objectName,
               schema: options.schema
             },
-            span
+            span,
+            previousResponseId: undefined,
+            incrementalPrompt: undefined
           }
 
           const content = yield* generateContent(options, providerOptions)
@@ -835,7 +849,9 @@ export const make: (params: ConstructorParams) => Effect.Effect<Service> = Effec
         tools: [],
         toolChoice: "none",
         responseFormat: { type: "text" },
-        span
+        span,
+        previousResponseId: undefined,
+        incrementalPrompt: undefined
       }
 
       // Resolve the content stream for the request
